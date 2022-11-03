@@ -92,12 +92,8 @@ def load_summoners_from_riot_api(base_link: str, queue_type: str, tier: str, div
 
 
 def load_list_of_summoners(config: dict, header: dict, verbose: bool = True) -> List[LeagueEntryDTO]:
+    """Retrieve the full list of summoners and collect in a single list"""
     links_per_division = build_summoners_links_per_division(config, header, verbose)
-    result = []
-    for url in links_per_division:
-        summoners = eval(
-            load_summoners_from_riot_api(**url).decode("utf-8").replace("true", "True").replace("false", "False"))
-        for summoner in summoners:
-            tmp = LeagueEntryDTO(**summoner)
-            result.append(tmp)
+    result = [LeagueEntryDTO(**summoner) for summoners in links_per_division for summoner in eval(
+            load_summoners_from_riot_api(**summoners).decode("utf-8").replace("true", "True").replace("false", "False"))]
     return result
