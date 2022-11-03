@@ -1,0 +1,2 @@
+env: development
+config_path: resources/dev_config.yaml
