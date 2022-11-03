@@ -10,27 +10,29 @@ from aws_secretsmanager_caching import SecretCache, SecretCacheConfig
 from pyspark import SparkSession
 
 
-def main(env_config):
+def main(env_config, db_connection_settings):
     config_yaml_path = env_config["config_path"]
 
+    # TODO: setup connection to db
     if env_config["env"] == "development":
-        api_key = bu.read_yaml(config_yaml_path)["api_key"]
+        header = env_config["header"]
     else:
         client = botocore.session.get_session().create_client('secretsmanager')
         cache_config = SecretCacheConfig()
         cache = SecretCache(config=cache_config, client=client)
 
-        api_key = cache.get_secret_string('api_key')
+        header = cache.get_secret_string('header')
 
     config = bu.read_yaml(config_yaml_path)["config"]
-    spark = SparkSession.builder.appName(config["spark_session"]["name"]).getOrCreate()
+    summoners_list = load_list_of_summoners(config, header, False)
+    summoner_empty_table = bu.build_table_structure_based_on_dict(summoners_list[0].dict())
 
-
+    # TODO: add table writing function
     return True
 
 
 if __name__ == "__main__":
     env_config = bu.read_yaml("resources/env_config/env_config.yaml")
     env_conf = env_config
-
-    main(env_conf)
+    # TODO: define connection settings based on env
+    main(env_conf, db_connection_settings=db_connection_settings)

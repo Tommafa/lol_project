@@ -10,7 +10,6 @@ class MiniSeriesDTO(BaseModel):
 
 
 class LeagueEntryDTO(BaseModel):
-    leagueID: str
     leagueId: str
     summonerId: str
     summonerName: str
@@ -24,7 +23,7 @@ class LeagueEntryDTO(BaseModel):
     veteran: bool
     freshBlood: bool
     inactive: bool
-    miniSeries: MiniSeriesDTO
+    miniSeries: MiniSeriesDTO = MiniSeriesDTO(**{'target': 0, 'wins': 0, 'losses': 0, 'progress': 'NNNNN'})
 
 
 class MatchDto(BaseModel):
