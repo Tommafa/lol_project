@@ -11,16 +11,16 @@ import time
 
 
 # TODO: change this function to organize it better
-def build_summoners_links_per_division(config: dict, headers: dict,
+def build_summoners_links_per_division(configurations_for_summoners_reader: dict, headers: dict,
                                        verbose: bool = True) -> List[dict]:
     """build list of tiers and divisions to load"""
 
     links_characteristics_list = []
     # define challenger dict
-    challenger = {"base_link": config["summoners_reader"]["base_path"],
-                  "queue_type": config["summoners_reader"]["queue_type"],
-                  "tier": config["summoners_reader"]["tiers"][0],
-                  "division": config["summoners_reader"]["divisions"][0],
+    challenger = {"base_link": configurations_for_summoners_reader["base_path"],
+                  "queue_type": configurations_for_summoners_reader["queue_type"],
+                  "tier": configurations_for_summoners_reader["tiers"][0],
+                  "division": configurations_for_summoners_reader["divisions"][0],
                   "page": 1,
                   "headers": headers,
                   "verbose": verbose
@@ -28,10 +28,10 @@ def build_summoners_links_per_division(config: dict, headers: dict,
                   }
 
     # define grandmaster dict
-    grandmaster = {"base_link": config["summoners_reader"]["base_path"],
-                   "queue_type": config["summoners_reader"]["queue_type"],
-                   "tier": config["summoners_reader"]["tiers"][1],
-                   "division": config["summoners_reader"]["divisions"][0],
+    grandmaster = {"base_link": configurations_for_summoners_reader["base_path"],
+                   "queue_type": configurations_for_summoners_reader["queue_type"],
+                   "tier": configurations_for_summoners_reader["tiers"][1],
+                   "division": configurations_for_summoners_reader["divisions"][0],
                    "page": 1,
                    "headers": headers,
                    "verbose": verbose
@@ -39,10 +39,10 @@ def build_summoners_links_per_division(config: dict, headers: dict,
                    }
 
     # define master dict
-    master = {"base_link": config["summoners_reader"]["base_path"],
-              "queue_type": config["summoners_reader"]["queue_type"],
-              "tier": config["summoners_reader"]["tiers"][2],
-              "division": config["summoners_reader"]["divisions"][0],
+    master = {"base_link": configurations_for_summoners_reader["base_path"],
+              "queue_type": configurations_for_summoners_reader["queue_type"],
+              "tier": configurations_for_summoners_reader["tiers"][2],
+              "division": configurations_for_summoners_reader["divisions"][0],
               "page": 1,
               "headers": headers,
               "verbose": verbose
@@ -52,16 +52,16 @@ def build_summoners_links_per_division(config: dict, headers: dict,
     links_characteristics_list.extend([challenger, grandmaster, master])
 
     # define dicts for all the other leagues
-    links_characteristics_list.extend([{"base_link": config["summoners_reader"]["base_path"],
-                                        "queue_type": config["summoners_reader"]["queue_type"],
+    links_characteristics_list.extend([{"base_link": configurations_for_summoners_reader["base_path"],
+                                        "queue_type": configurations_for_summoners_reader["queue_type"],
                                         "tier": tier,
                                         "division": division,
                                         "page": 1,
                                         "headers": headers,
                                         "verbose": verbose
                                         }
-                                       for i, tier in enumerate(config["summoners_reader"]["tiers"][3:])
-                                       for j, division in enumerate(config["summoners_reader"]["divisions"])])
+                                       for i, tier in enumerate(configurations_for_summoners_reader["tiers"][3:])
+                                       for j, division in enumerate(configurations_for_summoners_reader["divisions"])])
 
     return links_characteristics_list
 
@@ -101,14 +101,14 @@ def load_summoners_from_riot_api(base_link: str, queue_type: str, tier: str, div
             print("Unable to get url {} due to {}.".format(link_for_request, e.__class__))
 
 
-def load_list_of_summoners(config: dict, header: dict, verbose: bool = True) -> Dict[str,list]:
+def load_list_of_summoners(configurations_for_summoners_reader: dict, header: dict, verbose: bool = True) -> Dict[str,list]:
     """Retrieve the full list of summoners and collect in a single list"""
     # prepare dict for pandas df creation
     table_structure_summoners = {}
     for key in LeagueEntryDTO.schema()["properties"].keys():
         table_structure_summoners[key] = []
         # create full list of leagues to load
-        links_per_division = build_summoners_links_per_division(config, header, verbose)
+        links_per_division = build_summoners_links_per_division(configurations_for_summoners_reader, header, verbose)
 
     # use accessory list comprehension to: call the API, decode the bytes to string, create the dict to append to our
     # initial pandas structure ( the LeagueEntryDTO is necessary as sometimes the miniSeries is absent..)

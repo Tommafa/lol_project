@@ -11,10 +11,13 @@ from pyspark import SparkSession
 
 
 def main(env_config, db_connection_settings):
+
+
     config_yaml_path = env_config["config_path"]
 
     # TODO: setup connection to db
     if env_config["env"] == "development":
+        # if dev we can read the connection keys ( db and api) from a file, otherwise they are secrets
         header = env_config["header"]
     else:
         client = botocore.session.get_session().create_client('secretsmanager')
@@ -23,16 +26,24 @@ def main(env_config, db_connection_settings):
 
         header = cache.get_secret_string('header')
 
-    config = bu.read_yaml(config_yaml_path)["config"]
-    summoners_list = load_list_of_summoners(config, header, False)
-    summoner_empty_table = bu.build_table_structure_based_on_dict(summoners_list[0].dict())
+    # used to obtain the lists of tiers and divisions
+    config = bu.read_yaml(config_yaml_path)["leagues_structure"]
+
+    # given a set of settings for LOL API structure and the header, produce the dict with keys that are going to be
+    # our dataset's columns
+    summoners_dict = load_list_of_summoners(config["summoners_reader"], header, False)
+
+    # transform dict to pandas dataframe
+    summoners_pd = pd.DataFrame.from_dict(summoners_dict)
 
     # TODO: add table writing function
-    return True
+    return summoners_pd
 
 
 if __name__ == "__main__":
-    env_config = bu.read_yaml("resources/env_config/env_config.yaml")
-    env_conf = env_config
+
+    # read env file to understand where to find information
+    env_conf = bu.read_yaml("resources/env_config/env_config.yaml")
+
     # TODO: define connection settings based on env
     main(env_conf, db_connection_settings=db_connection_settings)
