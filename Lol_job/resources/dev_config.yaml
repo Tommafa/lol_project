@@ -1,9 +1,0 @@
-api_key: RGAPI-07e6ef77-f3ab-49dc-9ea2-5d00dde716f8
-
-leagues_structure:
-  summoners_reader:
-    base_path: https://euw1.api.riotgames.com/lol/league-exp/v4/entries/
-    queue_type: RANKED_SOLO_5x5
-    tiers: ["CHALLENGER", "GRANDMASTER", "MASTER", "DIAMOND", "PLATINUM", "GOLD", "SILVER", "BRONZE", "IRON"]
-    divisions: ["I", "II", "III", "IV"]
-
