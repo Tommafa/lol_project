@@ -25,34 +25,35 @@ class LeagueEntryDTO(BaseModel):
     inactive: bool
     miniSeries: MiniSeriesDTO = MiniSeriesDTO(**{'target': 0, 'wins': 0, 'losses': 0, 'progress': 'NNNNN'})
 
-
-class MatchDto(BaseModel):
-    metadata: MetadataDto
-    info: InfoDto
-
-
 class MetadataDto(BaseModel):
     dataVersion: str
     matchId: str
     participants: List[str]
 
+class PerkStyleSelectionDto(BaseModel):
+    perk: int
+    var1: int
+    var2: int
+    var3: int
 
-class InfoDto(BaseModel):
-    gameCreation: long
-    gameDuration: long
-    gameEndTimestamp: long
-    gameId: long
-    gameMode: str
-    gameName: str
-    gameStartTimestamp: long
-    gameType: str
-    gameVersion: str
-    mapId: int
-    participants: List[ParticipantDto]
-    platformId: str
-    queueId: int
-    teams: List[TeamDto]
-    tournamentCode: str
+class PerkStyleDto(BaseModel):
+    description: str
+    selections: List[PerkStyleSelectionDto]
+    style: int
+
+
+
+
+class PerkStatsDto(BaseModel):
+    defense: int
+    flex: int
+    offense: int
+
+
+
+class PerksDto(BaseModel):
+    statPerks: PerkStatsDto
+    styles: List[PerkStyleDto]
 
 
 class PartecipantDto(BaseModel):
@@ -163,40 +164,10 @@ class PartecipantDto(BaseModel):
     win: bool
 
 
-class PerksDto(BaseModel):
-    statPerks: PerkStatsDto
-    styles: List[PerkStyleDto]
 
-
-class PerkStatsDto(BaseModel):
-    defense: int
-    flex: int
-    offense: int
-
-
-class PerkStyleDto(BaseModel):
-    description: str
-    selections: List[PerkStyleSelectionDto]
-    style: int
-
-
-class PerkStyleSelectionDto(BaseModel):
-    perk: int
-    var1: int
-    var2: int
-    var3: int
-
-
-class TeamDto(BaseModel):
-    bans: List[BanDto]
-    objectives: ObjectivesDto
-    teamId: int
-    win: bool
-
-
-class BanDto(BaseModel):
-    championId: int
-    pickTurn: int
+class ObjectiveDto(BaseModel):
+    first: bool
+    kills: int
 
 
 class ObjectivesDto(BaseModel):
@@ -208,6 +179,41 @@ class ObjectivesDto(BaseModel):
     tower: ObjectiveDto
 
 
-class ObjectiveDto(BaseModel):
-    first: bool
-    kills: int
+class BanDto(BaseModel):
+    championId: int
+    pickTurn: int
+
+
+class TeamDto(BaseModel):
+    bans: List[BanDto]
+    objectives: ObjectivesDto
+    teamId: int
+    win: bool
+
+
+class InfoDto(BaseModel):
+    gameCreation: float
+    gameDuration: float
+    gameEndTimestamp: float
+    gameId: float
+    gameMode: str
+    gameName: str
+    gameStartTimestamp: float
+    gameType: str
+    gameVersion: str
+    mapId: int
+    participants: List[PartecipantDto]
+    platformId: str
+    queueId: int
+    teams: List[TeamDto]
+    tournamentCode: str
+
+class MatchDto(BaseModel):
+    metadata: MetadataDto
+    info: InfoDto
+
+
+
+
+
+

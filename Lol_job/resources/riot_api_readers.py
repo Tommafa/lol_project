@@ -1,11 +1,10 @@
 from typing import List, Dict, Any
 
-import request
+import requests
 import pydantic
 import urllib.request as urlreq
 import urllib.parse as urlp
-from league_objects import *
-import aiohttp
+from resources.league_objects import *
 import json
 import time
 
@@ -102,14 +101,16 @@ def load_summoners_from_riot_api(base_link: str, queue_type: str, tier: str, div
 
 
 def load_list_of_summoners(configurations_for_summoners_reader: dict, header: dict, verbose: bool = True) -> Dict[str,list]:
-    """Retrieve the full list of summoners and collect in a single list"""
+    """Retrieves a dataframe with values of each summoner"""
     # prepare dict for pandas df creation
     table_structure_summoners = {}
     for key in LeagueEntryDTO.schema()["properties"].keys():
         table_structure_summoners[key] = []
+
+
         # create full list of leagues to load
         links_per_division = build_summoners_links_per_division(configurations_for_summoners_reader, header, verbose)
-
+    print("table structure created")
     # use accessory list comprehension to: call the API, decode the bytes to string, create the dict to append to our
     # initial pandas structure ( the LeagueEntryDTO is necessary as sometimes the miniSeries is absent..)
     [table_structure_summoners[key].append(LeagueEntryDTO(**summoner).dict()[key]) for summoners in links_per_division
