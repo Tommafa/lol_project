@@ -5,19 +5,3 @@ leagues_structure:
     tiers: ["CHALLENGER", "GRANDMASTER", "MASTER", "DIAMOND", "PLATINUM", "GOLD", "SILVER", "BRONZE", "IRON"]
     divisions: ["I", "II", "III", "IV"]
 
-env: development
-config_path: resources/other_config/dev_config.yaml
-
-header:
-    User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/106.0.0.0 Safari/537.36
-    Accept-Language: en-US,en;q=0.9
-    Accept-Charset: application/x-www-form-urlencoded; charset=UTF-8
-    Origin: https://developer.riotgames.com
-    X-Riot-Token: RGAPI-b41d72ba-883e-4a9b-8e10-76d6324d2128
-
-db_settings:
-  connection_string: Driver={{ODBC Driver 18 for SQL Server}};Server={};Database={};Uid=Tommafa;Pwd={};Encrypt=yes;TrustServerCertificate=no;Connection Timeout=30;
-  db_name: lol-db
-  server: tcp:lol-db-server.database.windows.net,1433
-  schema: loldev
-  password: T0mm@s0.l@nn1
