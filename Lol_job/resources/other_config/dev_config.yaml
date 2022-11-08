@@ -1,5 +1,12 @@
+leagues_structure:
+  summoners_reader:
+    base_path: https://euw1.api.riotgames.com/lol/league-exp/v4/entries/
+    queue_type: RANKED_SOLO_5x5
+    tiers: ["CHALLENGER", "GRANDMASTER", "MASTER", "DIAMOND", "PLATINUM", "GOLD", "SILVER", "BRONZE", "IRON"]
+    divisions: ["I", "II", "III", "IV"]
+
 env: development
-config_path: resources/dev_config.yaml
+config_path: resources/other_config/dev_config.yaml
 
 header:
     User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/106.0.0.0 Safari/537.36
@@ -14,11 +21,3 @@ db_settings:
   server: tcp:lol-db-server.database.windows.net,1433
   schema: loldev
   password: T0mm@s0.l@nn1
-
-leagues_structure:
-  summoners_reader:
-    base_path: https://euw1.api.riotgames.com/lol/league-exp/v4/entries/
-    queue_type: RANKED_SOLO_5x5
-    tiers: ["CHALLENGER", "GRANDMASTER", "MASTER", "DIAMOND", "PLATINUM", "GOLD", "SILVER", "BRONZE", "IRON"]
-    divisions: ["I", "II", "III", "IV"]
-
