@@ -1,4 +1,4 @@
-from typing import Optional, List
+from typing import List
 from pydantic import BaseModel
 
 
@@ -23,12 +23,16 @@ class LeagueEntryDTO(BaseModel):
     veteran: bool
     freshBlood: bool
     inactive: bool
-    miniSeries: MiniSeriesDTO = MiniSeriesDTO(**{'target': 0, 'wins': 0, 'losses': 0, 'progress': 'NNNNN'})
+    miniSeries: MiniSeriesDTO = MiniSeriesDTO(
+        **{"target": 0, "wins": 0, "losses": 0, "progress": "NNNNN"}
+    )
+
 
 class MetadataDto(BaseModel):
     dataVersion: str
     matchId: str
     participants: List[str]
+
 
 class PerkStyleSelectionDto(BaseModel):
     perk: int
@@ -36,19 +40,17 @@ class PerkStyleSelectionDto(BaseModel):
     var2: int
     var3: int
 
+
 class PerkStyleDto(BaseModel):
     description: str
     selections: List[PerkStyleSelectionDto]
     style: int
 
 
-
-
 class PerkStatsDto(BaseModel):
     defense: int
     flex: int
     offense: int
-
 
 
 class PerksDto(BaseModel):
@@ -164,7 +166,6 @@ class PartecipantDto(BaseModel):
     win: bool
 
 
-
 class ObjectiveDto(BaseModel):
     first: bool
     kills: int
@@ -208,12 +209,7 @@ class InfoDto(BaseModel):
     teams: List[TeamDto]
     tournamentCode: str
 
+
 class MatchDto(BaseModel):
     metadata: MetadataDto
     info: InfoDto
-
-
-
-
-
-

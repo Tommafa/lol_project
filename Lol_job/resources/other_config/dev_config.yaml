@@ -1,7 +1,9 @@
-leagues_structure:
+league_structure:
   summoners_reader:
     base_path: https://euw1.api.riotgames.com/lol/league-exp/v4/entries/
     queue_type: RANKED_SOLO_5x5
     tiers: ["CHALLENGER", "GRANDMASTER", "MASTER", "DIAMOND", "PLATINUM", "GOLD", "SILVER", "BRONZE", "IRON"]
     divisions: ["I", "II", "III", "IV"]
 
+db_actions:
+  retrieve_from_table: select {} from {}.{}

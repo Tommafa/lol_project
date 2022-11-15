@@ -1,11 +1,6 @@
-from typing import Dict, Any, List
-
+from typing import Any
 import pandas as pd
-import numpy as np
 import datatable as dt
-import pydantic
-import typing
-import pyodbc as pyo
 import yaml
 
 
@@ -30,9 +25,13 @@ def build_table_structure_based_on_dict(dictionary: dict) -> dict:
 
 
 def verify_schema(connection, db_settings: dict):
-    connection.cursor().execute("""
+    connection.cursor().execute(
+        """
     IF NOT EXISTS ( SELECT  *
                 FROM    sys.schemas
                 WHERE   name = N'{}' )
     EXEC('CREATE SCHEMA [{}]');
-    """.format(db_settings["schema"], db_settings["schema"]))
+    """.format(
+            db_settings["schema"], db_settings["schema"]
+        )
+    )

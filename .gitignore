@@ -127,4 +127,3 @@ dmypy.json
 
 # Pyre type checker
 .pyre/
-/Lol_job/resources/env_config.yaml

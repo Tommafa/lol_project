@@ -6,4 +6,5 @@ numpy==1.23.4
 requests==2.28.1
 datatable==1.0.0
 SQLAlchemy==1.4.43
-pre-commit
+pyodbc==4.0.34
+python-dotenv==0.21.0
