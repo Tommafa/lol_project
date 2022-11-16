@@ -51,7 +51,7 @@ def main(logger, env_config, db_password, db_user, api_key, db_schema):
     # produce the dict with keys that are going to be
     # our dataset's columns
     summoners_dict, mini_series_dict = riot_r.load_list_of_summoners(
-        league_structure["summoners_reader"], header, verbose=True
+        league_structure["summoners_reader"], header, verbose=False
     )
     # header is used for api consumption
     logger.info("dati scaricati")
@@ -107,9 +107,7 @@ if __name__ == "__main__":
 
         log_inst = logging.getLogger(f"{__file__[:-2]}.log")
         logging.basicConfig(
-            format="%(asctime)s - %(message)s",
-            datefmt="%d-%b-%y %H:%M:%S",
-            filemode="w",
+            format="%(asctime)s - %(message)s", datefmt="%d-%b-%y %H:%M:%S"
         )
         if ENV == "development":
             log_inst.setLevel(logging.DEBUG)

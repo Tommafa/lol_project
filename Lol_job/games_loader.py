@@ -1,13 +1,16 @@
 from resources import base_utils as bu
 import pandas as pd
 import resources.riot_api_readers as riot_r
-from sqlalchemy import create_engine, schema
+from sqlalchemy import create_engine, schema, text
 import urllib
 import os
 from dotenv import load_dotenv
 import logging
 
 
+# TODO: get puuid via Summoner-v4 API
+#       get match_ids via Match-V5 API
+#       get match stats via Match-V5 API
 def main(logger, env_config, db_password, db_user, api_key, db_schema):
     config_yaml_path = env_config["config_path"]
 
@@ -22,9 +25,16 @@ def main(logger, env_config, db_password, db_user, api_key, db_schema):
     db_settings["schema"] = db_schema
 
     # used to obtain the lists of tiers and divisions
-    league_structure = bu.read_yaml(config_yaml_path)["league_structure"]
-    # db_actions = bu.read_yaml(config_yaml_path)["db_actions"]
+    db_actions = bu.read_yaml(config_yaml_path)["db_actions"]
 
+    logger.info(
+        db_settings["connection_string"].format(
+            db_settings["server"],
+            db_settings["db_name"],
+            db_settings["username"],
+            db_settings["password"],
+        )
+    )
     # setup connection
     quoted = urllib.parse.quote_plus(
         db_settings["connection_string"].format(
@@ -44,52 +54,29 @@ def main(logger, env_config, db_password, db_user, api_key, db_schema):
         logger.info("schema creato")
     else:
         logger.info("schema già presente")
-    # verify schema and create it eventually
-    # bu.verify_schema(connection, db_settings)
 
-    # given a set of settings for LOL API structure and the header,
-    # produce the dict with keys that are going to be
-    # our dataset's columns
-    summoners_dict, mini_series_dict = riot_r.load_list_of_summoners(
-        league_structure["summoners_reader"], header, verbose=True
-    )
-    # header is used for api consumption
-    logger.info("dati scaricati")
-
-    # merge dicts in a single one
-    summoners_dict.update(mini_series_dict)
-
-    # transform dict to pandas dataframe
-    summoners_pd = pd.DataFrame.from_dict(summoners_dict)
-
-    logger.info(f"the output columns are: {summoners_pd.columns}")
-    summoners_pd.drop("miniSeries", axis=1, inplace=True)
-    # write data to table
-
-    summoners_pd.to_sql(
-        "summoners",
-        schema=db_settings["schema"],
+    # read summoners from table
+    summoners_pd_from_sql = pd.read_sql(
+        text(
+            db_actions["retrieve_from_table"].format(
+                "summonerId", db_settings["schema"], db_settings["summoners_table_name"]
+            )
+        ),
         con=engine,
-        if_exists="replace",
-        index=False,
-        index_label="summonerId",
-        method="multi",
-        chunksize=100,
     )
 
-    """    with create_engine(f'mssql+pyodbc:///?odbc_connect={quoted}',
-                       fast_executemany=True) as engine:
-        summoners_pd_from_sql = pd.read_sql(
-            text(db_actions["retrieve_from_table"]
-                 .format("*", db_settings["schema"],
-                         db_settings["summoners_table_name"])),
-            con=engine)
+    puuids = [
+        eval(
+            riot_r.load_puuid_for_summoner(
+                logger=logger, summoner=summoner, header=header, verbose=True
+            ).decode("utf-8")
+        )["puuid"]
+        for summoner in summoners_pd_from_sql["summonerId"].head()
+    ]
+    logger.info(puuids)
+    engine.dispose()
 
-
-"""
-    logger.info("dati scritti su tabella")
-
-    return summoners_pd
+    return summoners_pd_from_sql
 
 
 if __name__ == "__main__":
@@ -105,16 +92,16 @@ if __name__ == "__main__":
         SCHEMA = os.getenv("SCHEMA")
         ENV = os.getenv("ENV")
 
-        log_inst = logging.getLogger(f"{__file__[:-2]}.log")
+        logger_instance = logging.getLogger(f"{__file__[:-2]}.log")
         logging.basicConfig(
             format="%(asctime)s - %(message)s",
             datefmt="%d-%b-%y %H:%M:%S",
             filemode="w",
         )
         if ENV == "development":
-            log_inst.setLevel(logging.DEBUG)
+            logger_instance.setLevel(logging.DEBUG)
         else:
-            log_inst.setLevel(logging.WARNING)
-        main(log_inst, env_conf, DB_PASSWORD, DB_USER, API_KEY, SCHEMA)
+            logger_instance.setLevel(logging.WARNING)
+        main(logger_instance, env_conf, DB_PASSWORD, DB_USER, API_KEY, SCHEMA)
     except Exception as e:
-        log_inst.error(f"mancano le variabili d'ambiente {e}", exc_info=True)
+        logger_instance.error(f"mancano le variabili d'ambiente {e}", exc_info=True)

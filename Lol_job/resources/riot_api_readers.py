@@ -77,9 +77,7 @@ def load_summoners_from_riot_api(
     """load a list of summoners ordered by rank"""
 
     # fill link structure with input params
-    link_for_request = "{}{}/{}/{}?page={}".format(
-        base_link, queue_type, tier, division, str(page)
-    )
+    link_for_request = f"{base_link}{queue_type}/{tier}/{division}?page={page}"
 
     # used to repeat the api call if we have code different from 200
     problems_at_previous_iteration = True
@@ -95,9 +93,7 @@ def load_summoners_from_riot_api(
                     "Everything went well!"
                     if status_code == 200
                     else "There was an error when handling the "
-                    "request for the following link: {}.".format(
-                        link_for_request
-                    )
+                    "request for the following link: {}.".format(link_for_request)
                 )
 
                 print(msg)
@@ -114,9 +110,7 @@ def load_summoners_from_riot_api(
         except Exception as e:
             iteration += 1
             print(
-                "Unable to get url {} due to {}.".format(
-                    link_for_request, e.__class__
-                )
+                "Unable to get url {} due to {}.".format(link_for_request, e.__class__)
             )
 
 
@@ -153,9 +147,7 @@ def load_list_of_summoners(
             .replace("false", "False")
         ):
             league_entry = LeagueEntryDTO(**summoner).dict()
-            mini_series_entry = MiniSeriesDTO(
-                **league_entry["miniSeries"]
-            ).dict()
+            mini_series_entry = MiniSeriesDTO(**league_entry["miniSeries"]).dict()
             for key in table_structure_summoners:
                 table_structure_summoners[key].append(league_entry[key])
             for key in MiniSeriesDTO.schema()["properties"]:
@@ -164,3 +156,41 @@ def load_list_of_summoners(
                 )
 
     return table_structure_summoners, table_structure_mini_series
+
+
+def load_puuid_for_summoner(logger, summoner: str, header: dict, verbose: bool = True):
+    link_for_request = (
+        f"https://euw1.api.riotgames.com/lol/summoner/v4/summoners/{summoner}"
+    )
+
+    # used to repeat the api call if we have code different from 200
+    problems_at_previous_iteration = True
+    iteration = 0
+    while problems_at_previous_iteration and iteration < 5:
+        # repeat up to 5 times
+        try:
+
+            response = requests.get(link_for_request, headers=header)
+            status_code = response.status_code
+            if verbose:
+                msg = (
+                    "Everything went well!"
+                    if status_code == 200
+                    else "There was an error when handling the "
+                    f"request for the following link: {link_for_request}."
+                )
+
+                logger.info(msg)
+            if status_code == 200:
+                problems_at_previous_iteration = False
+                return response.content
+            else:
+                if verbose:
+                    logger.error(response.content)
+                # usage limit is n calls every 2 minutes -->
+                # when I get an error I wait 2 minutes as it will reset
+                time.sleep(120)
+                iteration += 1
+        except Exception as e:
+            iteration += 1
+            logger.error(f"Unable to get url {link_for_request} due to {e.__class__}.")
