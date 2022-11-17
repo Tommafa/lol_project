@@ -1,3 +1,4 @@
+import logging
 from typing import List, Dict
 import requests
 from resources.league_objects import LeagueEntryDTO, MiniSeriesDTO
@@ -5,41 +6,41 @@ import time
 
 
 def build_summoners_links_per_division(
-    config_summoners_reader: dict, headers: dict, verbose: bool = True
+    base_path: str, config_summoners_reader: dict, header: dict, verbose: bool = True
 ) -> List[dict]:
     """build list of tiers and divisions to load"""
 
     links_characteristics_list = []
     # define challenger dict
     challenger = dict(
-        base_link=config_summoners_reader["base_path"],
+        base_link=base_path,
         queue_type=config_summoners_reader["queue_type"],
         tier=config_summoners_reader["tiers"][0],
         division=config_summoners_reader["divisions"][0],
         page=1,
-        headers=headers,
+        header=header,
         verbose=verbose,
     )
 
     # define grandmaster dict
     grandmaster = dict(
-        base_link=config_summoners_reader["base_path"],
+        base_link=base_path,
         queue_type=config_summoners_reader["queue_type"],
         tier=config_summoners_reader["tiers"][1],
         division=config_summoners_reader["divisions"][0],
         page=1,
-        headers=headers,
+        header=header,
         verbose=verbose,
     )
 
     # define master dict
     master = dict(
-        base_link=config_summoners_reader["base_path"],
+        base_link=base_path,
         queue_type=config_summoners_reader["queue_type"],
         tier=config_summoners_reader["tiers"][2],
         division=config_summoners_reader["divisions"][0],
         page=1,
-        headers=headers,
+        header=header,
         verbose=verbose,
     )
 
@@ -51,12 +52,12 @@ def build_summoners_links_per_division(
             links_characteristics_list.extend(
                 [
                     dict(
-                        base_link=config_summoners_reader["base_path"],
+                        base_link=base_path,
                         queue_type=config_summoners_reader["queue_type"],
                         tier=tier,
                         division=division,
                         page=1,
-                        headers=headers,
+                        header=header,
                         verbose=verbose,
                     )
                 ]
@@ -66,27 +67,39 @@ def build_summoners_links_per_division(
 
 
 def load_summoners_from_riot_api(
+    logger: logging.Logger,
     base_link: str,
     queue_type: str,
     tier: str,
     division: str,
     page: int,
-    headers: dict,
+    header: dict,
     verbose: bool = True,
 ) -> bytes:
     """load a list of summoners ordered by rank"""
 
     # fill link structure with input params
     link_for_request = f"{base_link}{queue_type}/{tier}/{division}?page={page}"
+    return make_request(link_for_request, header, verbose, logger)
 
+
+def make_request(
+    link_for_request,
+    header,
+    verbose: bool,
+    logger: logging.Logger,
+    max_iter: int = 5,
+    seconds_attendance: int = 120,
+):
+    """used to make requests to riot"""
     # used to repeat the api call if we have code different from 200
     problems_at_previous_iteration = True
     iteration = 0
-    while problems_at_previous_iteration and iteration < 5:
-        # repeat up to 5 times
+    while problems_at_previous_iteration and iteration < max_iter:
+        # repeat up to max_iter times
         try:
 
-            response = requests.get(link_for_request, headers=headers)
+            response = requests.get(link_for_request, headers=header)
             status_code = response.status_code
             if verbose:
                 msg = (
@@ -96,25 +109,27 @@ def load_summoners_from_riot_api(
                     "request for the following link: {}.".format(link_for_request)
                 )
 
-                print(msg)
+                logger.info(msg)
             if status_code == 200:
                 problems_at_previous_iteration = False
                 return response.content
             else:
                 if verbose:
-                    print(response.content)
+                    logger.info(response.content)
                 # usage limit is n calls every 2 minutes -->
                 # when I get an error I wait 2 minutes as it will reset
-                time.sleep(120)
+                time.sleep(seconds_attendance)
                 iteration += 1
         except Exception as e:
             iteration += 1
-            print(
+            logger.error(
                 "Unable to get url {} due to {}.".format(link_for_request, e.__class__)
             )
 
 
 def load_list_of_summoners(
+    logger: logging.Logger,
+    base_path: str,
     configurations_for_summoners_reader: dict,
     header: dict,
     verbose: bool = True,
@@ -131,9 +146,9 @@ def load_list_of_summoners(
 
         # create full list of leagues to load
         links_per_division = build_summoners_links_per_division(
-            configurations_for_summoners_reader, header, verbose
+            base_path, configurations_for_summoners_reader, header, verbose
         )
-    print("table structure created")
+    logger.info("table structure created")
     # for loop to: call the API, decode the bytes to string,
     # create the dict to append to our
     # initial pandas structure
@@ -141,7 +156,7 @@ def load_list_of_summoners(
     # the miniSeries is absent..)
     for summoners in links_per_division:
         for summoner in eval(
-            load_summoners_from_riot_api(**summoners)
+            load_summoners_from_riot_api(logger, **summoners)
             .decode("utf-8")
             .replace("true", "True")
             .replace("false", "False")
@@ -158,39 +173,30 @@ def load_list_of_summoners(
     return table_structure_summoners, table_structure_mini_series
 
 
-def load_puuid_for_summoner(logger, summoner: str, header: dict, verbose: bool = True):
+def load_puuid_for_summoner(
+    logger: logging.Logger,
+    base_link: str,
+    summoner: str,
+    header: dict,
+    verbose: bool = True,
+):
+    link_for_request = f"{base_link}/{summoner}"
+
+    return make_request(link_for_request, header, verbose, logger)
+
+
+def retrieve_last_n_games(
+    logger: logging.Logger,
+    base_link: str,
+    puuid: str,
+    header: dict,
+    verbose: bool = True,
+    game_type: str = "ranked",
+    games_to_skip: int = 0,
+    number_of_games: int = 100,
+):
     link_for_request = (
-        f"https://euw1.api.riotgames.com/lol/summoner/v4/summoners/{summoner}"
+        f"{base_link}/{puuid}/ids?type={game_type}&start={games_to_skip}"
+        f"&count={number_of_games}"
     )
-
-    # used to repeat the api call if we have code different from 200
-    problems_at_previous_iteration = True
-    iteration = 0
-    while problems_at_previous_iteration and iteration < 5:
-        # repeat up to 5 times
-        try:
-
-            response = requests.get(link_for_request, headers=header)
-            status_code = response.status_code
-            if verbose:
-                msg = (
-                    "Everything went well!"
-                    if status_code == 200
-                    else "There was an error when handling the "
-                    f"request for the following link: {link_for_request}."
-                )
-
-                logger.info(msg)
-            if status_code == 200:
-                problems_at_previous_iteration = False
-                return response.content
-            else:
-                if verbose:
-                    logger.error(response.content)
-                # usage limit is n calls every 2 minutes -->
-                # when I get an error I wait 2 minutes as it will reset
-                time.sleep(120)
-                iteration += 1
-        except Exception as e:
-            iteration += 1
-            logger.error(f"Unable to get url {link_for_request} due to {e.__class__}.")
+    return make_request(link_for_request, header, verbose, logger)

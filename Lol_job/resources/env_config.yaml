@@ -11,3 +11,4 @@ db_settings:
   db_name: lol-db
   server: tcp:lol-db-server.database.windows.net,1433
   summoners_table_name: summoners
+

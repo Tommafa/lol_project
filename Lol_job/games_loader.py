@@ -1,7 +1,9 @@
+from __future__ import annotations
+
 from resources import base_utils as bu
 import pandas as pd
 import resources.riot_api_readers as riot_r
-from sqlalchemy import create_engine, schema, text
+from sqlalchemy import create_engine, schema, text, exc
 import urllib
 import os
 from dotenv import load_dotenv
@@ -11,8 +13,20 @@ import logging
 # TODO: get puuid via Summoner-v4 API
 #       get match_ids via Match-V5 API
 #       get match stats via Match-V5 API
-def main(logger, env_config, db_password, db_user, api_key, db_schema):
+#       remove summoners_to_load
+def main(
+    logger: logging.Logger,
+    env_config: str,
+    db_password: str,
+    db_user: str,
+    api_key: str,
+    db_schema: str,
+    summoners_to_load: int | None = None,
+    verbose: bool = True,
+):
+
     config_yaml_path = env_config["config_path"]
+    base_paths = bu.read_yaml(config_yaml_path)["base_links"]
 
     # if dev we can read the connection keys ( db and api) from a file,
     # otherwise they are secrets
@@ -24,17 +38,6 @@ def main(logger, env_config, db_password, db_user, api_key, db_schema):
     db_settings["password"] = db_password
     db_settings["schema"] = db_schema
 
-    # used to obtain the lists of tiers and divisions
-    db_actions = bu.read_yaml(config_yaml_path)["db_actions"]
-
-    logger.info(
-        db_settings["connection_string"].format(
-            db_settings["server"],
-            db_settings["db_name"],
-            db_settings["username"],
-            db_settings["password"],
-        )
-    )
     # setup connection
     quoted = urllib.parse.quote_plus(
         db_settings["connection_string"].format(
@@ -45,35 +48,44 @@ def main(logger, env_config, db_password, db_user, api_key, db_schema):
         )
     )
     engine = create_engine(
-        "mssql+pyodbc:///?odbc_connect={}".format(quoted),
+        f"mssql+pyodbc:///?odbc_connect={quoted}",
         fast_executemany=True,
     )
 
     if db_settings["schema"] not in engine.dialect.get_schema_names(engine):
         engine.execute(schema.CreateSchema(db_settings["schema"]))
-        logger.info("schema creato")
+        logger.info("a new schema was created")
     else:
-        logger.info("schema già presente")
+        logger.info("schema already there")
 
+    # If we want to limit loaded summoners, we will limit the
+    # number to summoners_to_load
+    top_n = f"top({summoners_to_load})" if summoners_to_load else ""
     # read summoners from table
     summoners_pd_from_sql = pd.read_sql(
         text(
-            db_actions["retrieve_from_table"].format(
-                "summonerId", db_settings["schema"], db_settings["summoners_table_name"]
-            )
+            f"select {top_n} summonerId from {db_settings['schema']}."
+            f"{db_settings['summoners_table_name']}"
         ),
         con=engine,
     )
-
     puuids = [
         eval(
             riot_r.load_puuid_for_summoner(
-                logger=logger, summoner=summoner, header=header, verbose=True
+                logger=logger,
+                base_link=base_paths["summoner_v4"],
+                summoner=summoner,
+                header=header,
+                verbose=verbose,
             ).decode("utf-8")
         )["puuid"]
-        for summoner in summoners_pd_from_sql["summonerId"].head()
+        for summoner in summoners_pd_from_sql["summonerId"]
     ]
-    logger.info(puuids)
+    logger.info("puuids loaded")
+    games_list = []
+    for puuid in puuids:
+        games_list.extend(eval(riot_r.retrieve_games(puuid)).decode("utf-8"))
+
     engine.dispose()
 
     return summoners_pd_from_sql
@@ -103,5 +115,9 @@ if __name__ == "__main__":
         else:
             logger_instance.setLevel(logging.WARNING)
         main(logger_instance, env_conf, DB_PASSWORD, DB_USER, API_KEY, SCHEMA)
+    except exc.SQLAlchemyError as e:
+        logger_instance.error(
+            f"There was a problem with the db connection. {e}", exc_info=True
+        )
     except Exception as e:
-        logger_instance.error(f"mancano le variabili d'ambiente {e}", exc_info=True)
+        logger_instance.error(f"There was an unexpected exception {e}", exc_info=True)
