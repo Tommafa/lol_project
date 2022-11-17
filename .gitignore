@@ -131,4 +131,4 @@ dmypy.json
 /mssql-tools18_18.1.2.1-1_amd64.apk
 /msodbcsql18_18.1.2.1-1_amd64.sig
 /msodbcsql18_18.1.2.1-1_amd64.apk
-.idea/
+/.idea
