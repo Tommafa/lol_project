@@ -1,1 +1,1 @@
-# lol_toy_project
+# lol_project
