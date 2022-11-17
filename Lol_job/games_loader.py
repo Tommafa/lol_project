@@ -84,8 +84,18 @@ def main(
     logger.info("puuids loaded")
     games_list = []
     for puuid in puuids:
-        games_list.extend(eval(riot_r.retrieve_games(puuid)).decode("utf-8"))
-
+        games_list.extend(
+            eval(
+                riot_r.retrieve_last_n_games(
+                    logger=logger,
+                    base_link=base_paths["match_v5"],
+                    puuid=puuid,
+                    header=header,
+                    verbose=verbose,
+                )
+            )
+        )
+    logger.info(games_list)
     engine.dispose()
 
     return summoners_pd_from_sql
@@ -114,7 +124,15 @@ if __name__ == "__main__":
             logger_instance.setLevel(logging.DEBUG)
         else:
             logger_instance.setLevel(logging.WARNING)
-        main(logger_instance, env_conf, DB_PASSWORD, DB_USER, API_KEY, SCHEMA)
+        main(
+            logger_instance,
+            env_conf,
+            DB_PASSWORD,
+            DB_USER,
+            API_KEY,
+            SCHEMA,
+            summoners_to_load=10,
+        )
     except exc.SQLAlchemyError as e:
         logger_instance.error(
             f"There was a problem with the db connection. {e}", exc_info=True
