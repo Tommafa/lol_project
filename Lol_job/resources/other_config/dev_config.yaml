@@ -8,4 +8,5 @@ league_structure:
 base_links:
   league_exp_v4: https://euw1.api.riotgames.com/lol/league-exp/v4/entries/
   summoner_v4: https://euw1.api.riotgames.com/lol/summoner/v4/summoners
-  match_v5: https://europe.api.riotgames.com/lol/match/v5/matches/by-puuid
+  match_by_puuid: https://europe.api.riotgames.com/lol/match/v5/matches/by-puuid
+  match_details: https://europe.api.riotgames.com/lol/match/v5/matches

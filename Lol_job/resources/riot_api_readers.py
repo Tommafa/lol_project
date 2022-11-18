@@ -1,5 +1,8 @@
 import logging
 from typing import List, Dict
+
+import pandas
+import pandas as pd
 import requests
 from resources.league_objects import LeagueEntryDTO, MiniSeriesDTO
 import time
@@ -179,8 +182,20 @@ def load_puuid_for_summoner(
     summoner: str,
     header: dict,
     verbose: bool = True,
-):
+) -> object:
     link_for_request = f"{base_link}/{summoner}"
+
+    return make_request(link_for_request, header, verbose, logger)
+
+
+def load_games_for_summoner(
+    logger: logging.Logger,
+    base_link: str,
+    puuid: str,
+    header: dict,
+    verbose: bool = True,
+) -> object:
+    link_for_request = f"{base_link}/{puuid}/ids?type=ranked&start=0&count=100"
 
     return make_request(link_for_request, header, verbose, logger)
 
@@ -200,3 +215,61 @@ def retrieve_last_n_games(
         f"&count={number_of_games}"
     )
     return make_request(link_for_request, header, verbose, logger)
+
+
+def get_puuids(
+    logger: logging.Logger,
+    base_link: str,
+    header: dict,
+    verbose: bool,
+    starting_df: pd.DataFrame,
+    column_of_interest: str,
+) -> pd.DataFrame:
+    """This function starts from a dataframe a returns
+    a copy of that dataframe with the new column puuid"""
+    output_df = starting_df.copy()
+    puuids = pd.Series(
+        [
+            eval(
+                load_puuid_for_summoner(
+                    logger=logger,
+                    base_link=base_link,
+                    summoner=summoner,
+                    header=header,
+                    verbose=verbose,
+                ).decode("utf-8")
+            )["puuid"]
+            for summoner in starting_df[column_of_interest]
+        ]
+    )
+    output_df["puuid"] = puuids
+
+    return output_df
+
+
+def get_games(
+    logger: logging.Logger,
+    base_link: str,
+    header: dict,
+    verbose: bool,
+    starting_df: pd.DataFrame,
+    column_of_interest: str,
+) -> pd.Series:
+    """given a summoners df with puuids it returns a
+    list of the last 100 games played for each puuid"""
+    games = []
+    time = []
+    for puuid in starting_df[column_of_interest]:
+        list_of_games_per_puuid = eval(
+            load_games_for_summoner(
+                logger=logger,
+                base_link=base_link,
+                puuid=puuid,
+                header=header,
+                verbose=verbose,
+            ).decode("utf-8")
+        )
+        games.extend(list_of_games_per_puuid)
+        time.extend([i for i in range(len(list_of_games_per_puuid))])
+    games = pd.Series(games, index=time)
+    return games

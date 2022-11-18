@@ -10,8 +10,9 @@ from dotenv import load_dotenv
 import logging
 
 
-# TODO: get puuid via Summoner-v4 API
-#       get match_ids via Match-V5 API
+# TODO: get puuid via Summoner-v4 API - done
+#       get match_ids via Match-V5 API - done
+#       If top_n is None --> update summoners table adding puuid
 #       get match stats via Match-V5 API
 #       remove summoners_to_load
 def main(
@@ -23,6 +24,7 @@ def main(
     db_schema: str,
     summoners_to_load: int | None = None,
     verbose: bool = True,
+    summoner_id_column: str = "summonerId",
 ):
 
     config_yaml_path = env_config["config_path"]
@@ -64,38 +66,48 @@ def main(
     # read summoners from table
     summoners_pd_from_sql = pd.read_sql(
         text(
-            f"select {top_n} summonerId from {db_settings['schema']}."
+            f"select {top_n} {summoner_id_column} from {db_settings['schema']}."
             f"{db_settings['summoners_table_name']}"
         ),
         con=engine,
     )
-    puuids = [
-        eval(
-            riot_r.load_puuid_for_summoner(
-                logger=logger,
-                base_link=base_paths["summoner_v4"],
-                summoner=summoner,
-                header=header,
-                verbose=verbose,
-            ).decode("utf-8")
-        )["puuid"]
-        for summoner in summoners_pd_from_sql["summonerId"]
-    ]
+
+    # request for puuids through Riot API
+    puuids_df = riot_r.get_puuids(
+        logger=logger,
+        base_link=base_paths["summoner_v4"],
+        header=header,
+        verbose=verbose,
+        starting_df=summoners_pd_from_sql,
+        column_of_interest=summoner_id_column,
+    )
+
     logger.info("puuids loaded")
-    games_list = []
-    for puuid in puuids:
+
+    logger.info(puuids_df)
+    # request games list for each puuid
+    games_ts = riot_r.get_games(
+        logger=logger,
+        base_link=base_paths["match_by_puuid"],
+        header=header,
+        verbose=verbose,
+        starting_df=puuids_df,
+        column_of_interest="puuid",
+    )
+    """games_list = []
+    for puuid in puuids_df["puuid"]:
         games_list.extend(
             eval(
                 riot_r.retrieve_last_n_games(
                     logger=logger,
-                    base_link=base_paths["match_v5"],
+                    base_link=base_paths["match_by_puuid"],
                     puuid=puuid,
                     header=header,
                     verbose=verbose,
                 )
             )
-        )
-    logger.info(games_list)
+        )"""
+    logger.info(games_ts)
     engine.dispose()
 
     return summoners_pd_from_sql
