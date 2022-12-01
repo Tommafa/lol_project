@@ -51,7 +51,7 @@ def main(logger, env_config, db_password, db_user, api_key, db_schema):
 
     # given the connection string, the Api header and the league
     # structure produces the dataset of the summoners
-    summoners_dict, mini_series_dict = riot_r.load_list_of_summoners(
+    summoners_dict, mini_series_dict = riot_r.get_summoners(
         logger,
         base_paths["league_exp_v4"],
         league_structure["summoners_reader"],
@@ -113,5 +113,7 @@ if __name__ == "__main__":
         log_inst.error(
             f"There was a problem with the db connection. {e}", exc_info=True
         )
+    except AttributeError as e:
+        log_inst.error(f"there was a problem with the request: {e}", exc_info=True)
     except Exception as e:
         log_inst.error(f"There was an unexpected exception {e}", exc_info=True)

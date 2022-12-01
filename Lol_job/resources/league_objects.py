@@ -213,3 +213,6 @@ class InfoDto(BaseModel):
 class MatchDto(BaseModel):
     metadata: MetadataDto
     info: InfoDto
+
+    def players_list(self):
+        return self.metadata.partecipants

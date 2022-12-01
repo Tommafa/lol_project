@@ -12,9 +12,9 @@ import logging
 
 # TODO: get puuid via Summoner-v4 API - done
 #       get match_ids via Match-V5 API - done
-#       If top_n is None --> update summoners table adding puuid
+#       If top_n is None --> update summoners table adding puuid via STORED PROCEDURE
 #       get match stats via Match-V5 API
-#       remove summoners_to_load
+#       remove summoners_to_load, remove games_to_load
 def main(
     logger: logging.Logger,
     env_config: str,
@@ -24,7 +24,8 @@ def main(
     db_schema: str,
     summoners_to_load: int | None = None,
     verbose: bool = True,
-    summoner_id_column: str = "summonerId",
+    list_of_columns: list = ["summonerId"],
+    games_to_load: int = 100,
 ):
 
     config_yaml_path = env_config["config_path"]
@@ -66,11 +67,13 @@ def main(
     # read summoners from table
     summoners_pd_from_sql = pd.read_sql(
         text(
-            f"select {top_n} {summoner_id_column} from {db_settings['schema']}."
+            f"select {top_n} {' '.join(list_of_columns)} from {db_settings['schema']}."
             f"{db_settings['summoners_table_name']}"
         ),
         con=engine,
     )
+
+    logger.info("summoners loaded from db")
 
     # request for puuids through Riot API
     puuids_df = riot_r.get_puuids(
@@ -79,12 +82,11 @@ def main(
         header=header,
         verbose=verbose,
         starting_df=summoners_pd_from_sql,
-        column_of_interest=summoner_id_column,
+        column_of_interest=list_of_columns,
     )
 
-    logger.info("puuids loaded")
+    logger.info("puuids retrieved from riot API")
 
-    logger.info(puuids_df)
     # request games list for each puuid
     games_ts = riot_r.get_games(
         logger=logger,
@@ -93,21 +95,24 @@ def main(
         verbose=verbose,
         starting_df=puuids_df,
         column_of_interest="puuid",
+        number_of_games=games_to_load,
     )
-    """games_list = []
-    for puuid in puuids_df["puuid"]:
-        games_list.extend(
-            eval(
-                riot_r.retrieve_last_n_games(
-                    logger=logger,
-                    base_link=base_paths["match_by_puuid"],
-                    puuid=puuid,
-                    header=header,
-                    verbose=verbose,
-                )
-            )
-        )"""
-    logger.info(games_ts)
+    logger.info("games' names list retrieved from riot API")
+
+    # request details of each of the games
+
+    game_details = riot_r.get_games_details(
+        logger=logger,
+        base_link=base_paths["match_details"],
+        header=header,
+        verbose=verbose,
+        games_list=games_ts,
+    )
+
+    logger.info("games' details retrieved from riot API")
+
+    logger.info(game_details[0])
+    logger.info("writing games to db")
     engine.dispose()
 
     return summoners_pd_from_sql
@@ -144,10 +149,15 @@ if __name__ == "__main__":
             API_KEY,
             SCHEMA,
             summoners_to_load=10,
+            games_to_load=5,
         )
     except exc.SQLAlchemyError as e:
         logger_instance.error(
             f"There was a problem with the db connection. {e}", exc_info=True
+        )
+    except AttributeError as e:
+        logger_instance.error(
+            f"there was a problem with the request: {e}", exc_info=True
         )
     except Exception as e:
         logger_instance.error(f"There was an unexpected exception {e}", exc_info=True)
