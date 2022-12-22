@@ -47,9 +47,12 @@ def make_request(
 
                 logger.info(msg)
             if status_code == 200:
+                print("done")
                 problems_at_previous_iteration = False
                 return response.content
             else:
+                print("else")
+
                 if verbose:
                     logger.info(response.content)
 
@@ -61,6 +64,17 @@ def make_request(
         except Exception as e:
             iteration += 1
             logger.error("Unable to get url {} due to {}.".format(link_for_request, e))
+
+
+def func_a(
+    req,
+    header,
+    max_iter: int = 5,
+):
+    i = 5
+    for j in range(i):
+        r = requests.get(req, header)
+        return r
 
 
 def setup_db(
@@ -80,7 +94,7 @@ def setup_db(
     game_summoner_unclustered_index: str,
 ):
     """
-    This function creates a schema and all table we will use for this project.
+    This function creates a schema and all the tables we will use for this project.
     Before actually running it checks for existence.
     """
 
@@ -219,29 +233,18 @@ If IndexProperty(Object_Id({schema}.{summoner_table}),
 
 # TODO: change query using columns_of_interest, add
 def build_business_query(connection, num, columns_of_interest):
-    query = " select current_game"
 
-    for id in range(1, num + 1):
-        for col in columns_of_interest:
-            query += f""",{col}_{id} = max(case when RN= {id} then A.{col} end)"""
-
-    query += """ From(
-        Select *
-        , RN=row_number()
-    over(partition
-    by
-    current_game
-    order
-    by(select
-    null))
-    from select  t0_g.matchId as current_match, other_games.*
+    query = """
+    with to_be_pivoted_query as
+(select  t0_g.matchId as current_match, other_games.*
 
 from
 
 (select g.*,gs.internal_player_id,  RANK()
 over (partition by gs.internal_player_id order by g.gameCreation asc) as game_order
-from sk.game_summoner_table as gs inner join sk.game_table as g
-on gs.internal_game_id=g.internal_game_id) as other_games
+from sk.game_summoner_table as gs
+inner join sk.game_table as g on
+gs.internal_game_id=g.internal_game_id) as other_games
 
 inner join
 
@@ -255,10 +258,42 @@ where g.potential_t0=1) as t0_g
 on t0_g.internal_player_id=other_games.internal_player_id
 
 where other_games.game_order>t0_g.game_order and
-other_games.game_order<t0_g.game_order + 6 and
-other_games.matchId <>t0_g.matchId
-) A
-    Group
-    By
-    current_game"""
+other_games.game_order<t0_g.game_order + 6 and other_games.matchId <>t0_g.matchId
+
+select current_game
+
+)"""
+
+    for id in range(1, num + 1):
+        query += f"""
+                    ,internal_game_id_{id} =  max(case when
+                    RN= {id} then A.internal_game_id end)
+                    ,gameCreation_{id} =  max(case when
+                    RN= {id} then A.gameCreation end)
+                    ,gameDuration_{id} =  max(case when
+                    RN= {id} then A.gameDuration end)
+                    ,matchId_{id} =  max(case when
+                    RN= {id} then A.matchId end)
+                    ,gameMode_{id} =  max(case when
+                    RN= {id} then A.gameMode_ end)
+                    ,gameEndedInEarlySurrender_{id} =
+                    max(case when RN= {id} then A.gameEndedInEarlySurrender end)
+                    ,queueId_{id} =  max(case when
+                    RN= {id} then A.queueId end)
+                    ,gameEndedInSurrender_{id} =
+                    max(case when RN= {id} then A.gameEndedInSurrender end)
+                    ,team100Win_{id} =
+                    max(case when RN= {id} then A.team100Win end)
+                    ,team200Win_{id} =  max(case when
+                     RN= {id} then A.team200Win end)
+                    ,internal_player_id_{id} =  max(case when
+                     RN= {id} then A.internal_player_id end)
+                    """
+    query += """  From  (
+        Select *
+              ,RN = row_number() over
+              (partition by current_match order by (select null))
+         from to_be_pivoted_query
+       ) A
+ Group By current_match"""
     return query

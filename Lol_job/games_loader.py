@@ -88,7 +88,7 @@ def main(
     logger.info("puuids retrieved from riot API")
 
     # request games list for each puuid
-    games_ts = riot_r.get_games(
+    games_ts, _, _ = riot_r.get_games(
         logger=logger,
         base_link=base_paths["match_by_puuid"],
         header=header,

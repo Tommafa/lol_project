@@ -8,7 +8,11 @@ import resources.base_utils as bu
 
 
 def build_summoners_links_per_division(
-    base_path: str, config_summoners_reader: dict, header: dict, verbose: bool = True
+    base_path: str,
+    config_summoners_reader: dict,
+    header: dict,
+    pages: int = 1,
+    verbose: bool = True,
 ) -> List[dict]:
     """build list of tiers and divisions to load"""
 
@@ -19,7 +23,7 @@ def build_summoners_links_per_division(
         queue_type=config_summoners_reader["queue_type"],
         tier=config_summoners_reader["tiers"][0],
         division=config_summoners_reader["divisions"][0],
-        page=1,
+        page=pages,
         header=header,
         verbose=verbose,
     )
@@ -30,7 +34,7 @@ def build_summoners_links_per_division(
         queue_type=config_summoners_reader["queue_type"],
         tier=config_summoners_reader["tiers"][1],
         division=config_summoners_reader["divisions"][0],
-        page=1,
+        page=pages,
         header=header,
         verbose=verbose,
     )
@@ -41,7 +45,7 @@ def build_summoners_links_per_division(
         queue_type=config_summoners_reader["queue_type"],
         tier=config_summoners_reader["tiers"][2],
         division=config_summoners_reader["divisions"][0],
-        page=1,
+        page=pages,
         header=header,
         verbose=verbose,
     )
@@ -58,7 +62,7 @@ def build_summoners_links_per_division(
                         queue_type=config_summoners_reader["queue_type"],
                         tier=tier,
                         division=division,
-                        page=1,
+                        page=pages,
                         header=header,
                         verbose=verbose,
                     )
@@ -73,6 +77,7 @@ def get_summoners(
     base_path: str,
     configurations_for_summoners_reader: dict,
     header: dict,
+    pages: int = 1,
     verbose: bool = True,
 ) -> tuple[Dict[str, list], Dict[str, list]]:
     """Starting from a given league structure,
@@ -89,9 +94,13 @@ def get_summoners(
         table_structure_mini_series[f"mini_series_{key}"] = []
 
     # create full list of leagues to load
-    links_per_division = build_summoners_links_per_division(
-        base_path, configurations_for_summoners_reader, header, verbose
-    )
+    links_per_division = []
+    for page in range(1, pages + 1):
+        links_per_division.extend(
+            build_summoners_links_per_division(
+                base_path, configurations_for_summoners_reader, header, page, verbose
+            )
+        )
     logger.info("table structure created")
     # for loop to: call the API, decode the bytes to string,
     # create the dict to append to our
@@ -156,11 +165,15 @@ def get_games(
     starting_df: pd.DataFrame,
     column_of_interest: str,
     number_of_games: int = 100,
-) -> pd.Series:
-    """given a summoners df with puuids it returns a
-    list of the last 'number_of_games' games played for each puuid"""
+    historical_memory: int = 5,
+) -> List:
+    """given a summoners df with puuids it returns: a
+    list of the last 'number_of_games' games played for each puuid newest->oldest,
+    a dict[match_id] = [puuids] and a  dict[puuid] = [match_ids]"""
     games = []
     time_ind = []
+    games_of_a_player = {}
+    players_of_a_game = {}
     for puuid in starting_df[column_of_interest]:
         list_of_games_per_puuid = eval(
             retrieve_last_n_games(
@@ -174,8 +187,15 @@ def get_games(
         )
         games.extend(list_of_games_per_puuid)
         time_ind.extend([i for i in range(len(list_of_games_per_puuid))])
+        games_of_a_player[puuid] = list_of_games_per_puuid[:-historical_memory]
+        for game in list_of_games_per_puuid[:-historical_memory]:
+            if players_of_a_game[game]:
+                players_of_a_game.extend(puuid)
+            else:
+                players_of_a_game[game] = [puuid]
+
     games = pd.Series(games, index=time_ind)
-    return games
+    return games, games_of_a_player, players_of_a_game
 
 
 def get_games_details(

@@ -1,0 +1,31 @@
+[
+                {
+                    "leagueId": "f6134c21-afc2-3c72-8b43-5259ec512b58",
+                    "queueType": "RANKED_SOLO_5x5",
+                    "tier": "MASTER",
+                    "rank": "I",
+                    "summonerId": "1y78WoZam2SljNAEXFuU7O4wXAPPxuhwc9DEBZPuUEEzoHUBz2KBNDGfeA",
+                    "summonerName": "Zyb Who",
+                    "leaguePoints": 715,
+                    "wins": 856,
+                    "losses": 854,
+                    "veteran": false,
+                    "inactive": false,
+                    "freshBlood": true,
+                    "hotStreak": true
+                },
+                {
+                    "leagueId": "f6134c21-afc2-3c72-8b43-5259ec512b58",
+                    "queueType": "RANKED_SOLO_5x5",
+                    "tier": "MASTER",
+                    "rank": "I",
+                    "summonerId": "yY-9qKAtpXrmDVdjicbw1qN0sfLjbBuGpEx32qBStRceVbE",
+                    "summonerName": "VININE Rafe",
+                    "leaguePoints": 710,
+                    "wins": 415,
+                    "losses": 365,
+                    "veteran": false,
+                    "inactive": false,
+                    "freshBlood": true,
+                    "hotStreak": true
+                }]

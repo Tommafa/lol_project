@@ -1,0 +1,31 @@
+[
+                {
+                    "leagueId": "42e89ab6-c756-30c9-b4d7-792b223a6bba",
+                    "queueType": "RANKED_SOLO_5x5",
+                    "tier": "GRANDMASTER",
+                    "rank": "I",
+                    "summonerId": "rTTEhl6fa-DqvuVdeCAilNro_mCy3U4bc7JIf3yUQmSBldM",
+                    "summonerName": "bob lelectricien",
+                    "leaguePoints": 961,
+                    "wins": 617,
+                    "losses": 572,
+                    "veteran": false,
+                    "inactive": false,
+                    "freshBlood": true,
+                    "hotStreak": false
+                },
+                {
+                    "leagueId": "42e89ab6-c756-30c9-b4d7-792b223a6bba",
+                    "queueType": "RANKED_SOLO_5x5",
+                    "tier": "GRANDMASTER",
+                    "rank": "I",
+                    "summonerId": "WjeijcI2LBPxPnCmXg_7zShm_R3n7bxM7EzRUxZO2Z4Qb_U",
+                    "summonerName": "EL RONRONS",
+                    "leaguePoints": 959,
+                    "wins": 628,
+                    "losses": 574,
+                    "veteran": false,
+                    "inactive": false,
+                    "freshBlood": true,
+                    "hotStreak": false
+                }]

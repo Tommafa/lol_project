@@ -1,0 +1,30 @@
+[{
+        "leagueId": "42e89ab6-c756-30c9-b4d7-792b223a6bba",
+        "queueType": "RANKED_SOLO_5x5",
+        "tier": "GRANDMASTER",
+        "rank": "I",
+        "summonerId": "y6JdyJGqUUBe22C0_eBho_mSZNekz0Zs01r5hibB5LkLNTke",
+        "summonerName": "3rd place king",
+        "leaguePoints": 826,
+        "wins": 485,
+        "losses": 436,
+        "veteran": false,
+        "inactive": false,
+        "freshBlood": false,
+        "hotStreak": false
+    },
+    {
+        "leagueId": "42e89ab6-c756-30c9-b4d7-792b223a6bba",
+        "queueType": "RANKED_SOLO_5x5",
+        "tier": "GRANDMASTER",
+        "rank": "I",
+        "summonerId": "8wOY9A3ASMCDj7LB78Kifa9n2sTq9V72Hu2e6vyulB6pCEw",
+        "summonerName": "WeiZoR",
+        "leaguePoints": 826,
+        "wins": 342,
+        "losses": 293,
+        "veteran": false,
+        "inactive": false,
+        "freshBlood": false,
+        "hotStreak": false
+    }]
