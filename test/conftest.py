@@ -3,14 +3,15 @@ import logging
 import requests
 from pydantic import BaseModel
 import os
-import resources.base_utils as bu
+import Lol_job.Lol_job.resources.base_utils as bu
 
 # path to test directory
 pytest.test_dir = os.path.dirname(os.path.abspath(__file__))
 
 # load base path directly from config file
 base_path_league_exp_v4 = bu.read_yaml(
-    f"{os.path.dirname(pytest.test_dir)}" f"/resources/other_config/dev_config.yaml"
+    f"{os.path.dirname(pytest.test_dir)}"
+    f"/Lol_job/resources/other_config/dev_config.yaml"
 )["base_links"]["league_exp_v4"]
 
 # base path for get_summoners test

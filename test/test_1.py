@@ -1,6 +1,6 @@
 import pytest
-import resources.riot_api_readers as riot_r
-from resources.base_utils import make_request
+import Lol_job.Lol_job.resources.riot_api_readers as riot_r
+from Lol_job.Lol_job.resources.base_utils import make_request
 import json
 import pickle
 

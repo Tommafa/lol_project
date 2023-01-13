@@ -3,8 +3,8 @@ from typing import List, Dict
 
 import pandas
 import pandas as pd
-from resources.league_objects import LeagueEntryDTO, MiniSeriesDTO
-import resources.base_utils as bu
+from league_objects import LeagueEntryDTO, MiniSeriesDTO
+import base_utils as bu
 
 
 def build_summoners_links_per_division(

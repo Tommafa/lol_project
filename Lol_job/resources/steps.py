@@ -1,6 +1,6 @@
 from resources import base_utils as bu
 import pandas as pd
-import resources.riot_api_readers as riot_r
+import riot_api_readers as riot_r
 
 # from sqlalchemy import create_engine, schema, exc
 # import urllib
