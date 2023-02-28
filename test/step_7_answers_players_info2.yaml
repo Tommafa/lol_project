@@ -1,0 +1,42 @@
+with open(f"C:\\Users\\tommaso.lanni\\Desktop\\lol_project\\Lol_job/test/step_5_expected_outputs.yaml", "r") as fp:
+    outputs1 = yaml.load(fp, Loader=yaml.FullLoader)["Game_summoner_output"]
+
+
+with open(f"C:\\Users\\tommaso.lanni\\Desktop\\lol_project\\Lol_job/test/step_7_expected_outputs.yaml", "r") as fp:
+    outputs2 = yaml.load(fp, Loader=yaml.FullLoader)["games_summoners_output"]
+
+
+with open(f"C:\\Users\\tommaso.lanni\\Desktop\\lol_project\\Lol_job/test/step_5_expected_outputs.yaml", "r") as fp:
+    outputs3 = yaml.load(fp, Loader=yaml.FullLoader)["Games_output"]
+
+
+with open(f"C:\\Users\\tommaso.lanni\\Desktop\\lol_project\\Lol_job/test/step_7_expected_outputs.yaml", "r") as fp:
+    outputs4 = yaml.load(fp, Loader=yaml.FullLoader)["games_output"]
+df_semi = outputs1 + outputs2
+
+game_summoner_details = pd.DataFrame.from_records(df_semi)
+
+
+df2_semi = outputs3 + outputs4
+
+game_details = pd.DataFrame.from_records(df2_semi)
+
+join_df = game_details.merge(game_summoner_details, on="matchId")
+
+
+
+
+
+
+with open(f"C:\\Users\\tommaso.lanni\\Desktop\\lol_project\\Lol_job/test/step_8_inputs.yaml", "r") as fp:
+    games_summoners_input = yaml.load(fp, Loader=yaml.FullLoader)["games_summoners_input"]
+with open(f"C:\\Users\\tommaso.lanni\\Desktop\\lol_project\\Lol_job/test/step_8_inputs.yaml", "r") as fp:
+    summoners_list_input = yaml.load(fp, Loader=yaml.FullLoader)["summoners_list_input"]
+with open(f"C:\\Users\\tommaso.lanni\\Desktop\\lol_project\\Lol_job/test/step_8_expected_output.yaml", "r") as fp:
+    expected_outputs = yaml.load(fp, Loader=yaml.FullLoader)
+games_summoners_df= pd.DataFrame.from_records(games_summoners_input)
+summoners_df = pd.DataFrame.from_records(summoners_list_input)
+
+join_df = summoners_df.merge(games_summoners_df, on="puuid")
+
+join_df.groupby(["puuid", "championId"]).mean(numeric_only=True)["win"].reset_index()

@@ -5,8 +5,25 @@ league_structure:
     divisions: ["I", "II", "III", "IV"]
 
 
+#base_links:
+#  league_exp_v4: https://euw1.api.riotgames.com/lol/league-exp/v4/entries/ # step 1
+#  summoner_v4: https://euw1.api.riotgames.com/lol/summoner/v4/summoners # step 2 and step 7
+#  match_by_puuid: https://europe.api.riotgames.com/lol/match/v5/matches/by-puuid # step 3_4 and step 6
+#  match_details: https://europe.api.riotgames.com/lol/match/v5/matches # step 5 and step 7
+#  summoner_v4_by_puuid: https://euw1.api.riotgames.com/lol/summoner/v4/summoners/by-puuid  # step 7
+#  champ_mastery_v4: https://euw1.api.riotgames.com/lol/champion-mastery/v4/champion-masteries # step 8
+#  version_link_step_9: https://ddragon.leagueoflegends.com/api/versions.json # step 9
+#  champions_link_step_9: http://ddragon.leagueoflegends.com/cdn/{}/data/it_IT/champion.json # step 9
+
+
+
+
 base_links:
-  league_exp_v4: https://euw1.api.riotgames.com/lol/league-exp/v4/entries/
-  summoner_v4: https://euw1.api.riotgames.com/lol/summoner/v4/summoners
-  match_by_puuid: https://europe.api.riotgames.com/lol/match/v5/matches/by-puuid
-  match_details: https://europe.api.riotgames.com/lol/match/v5/matches
+  step_1_league_exp_v4: https://euw1.api.riotgames.com/lol/league-exp/v4/entries/ # step 1
+  step_2_7_summoner_v4: https://euw1.api.riotgames.com/lol/summoner/v4/summoners # step 2 and step 7
+  step_3_4_6_match_by_puuid: https://europe.api.riotgames.com/lol/match/v5/matches/by-puuid # step 3_4 and step 6
+  step_5_7_match_details: https://europe.api.riotgames.com/lol/match/v5/matches # step 5 and step 7
+  step_7_summoner_v4_by_puuid: https://euw1.api.riotgames.com/lol/summoner/v4/summoners/by-puuid  # step 7
+  step_8_champ_mastery_v4: https://euw1.api.riotgames.com/lol/champion-mastery/v4/champion-masteries # step 8
+  step_9_version_link: https://ddragon.leagueoflegends.com/api/versions.json # step 9
+  step_9_champions_link: http://ddragon.leagueoflegends.com/cdn/{}/data/it_IT/champion.json # step 9

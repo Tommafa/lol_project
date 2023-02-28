@@ -1,10 +1,10 @@
 import logging
 from typing import List, Dict
 
-import pandas
 import pandas as pd
-from league_objects import LeagueEntryDTO, MiniSeriesDTO
+from league_objects import LeagueEntryDTO, MiniSeriesDTO, MatchDto
 import base_utils as bu
+import json
 
 
 def build_summoners_links_per_division(
@@ -168,12 +168,10 @@ def get_games(
     historical_memory: int = 5,
 ) -> List:
     """given a summoners df with puuids it returns: a
-    list of the last 'number_of_games' games played for each puuid newest->oldest,
-    a dict[match_id] = [puuids] and a  dict[puuid] = [match_ids]"""
-    games = []
-    time_ind = []
-    games_of_a_player = {}
+    set of potential t0 games and
+    dict[match_id] = [puuids]"""
     players_of_a_game = {}
+    potential_t0 = set()
     for puuid in starting_df[column_of_interest]:
         list_of_games_per_puuid = eval(
             retrieve_last_n_games(
@@ -183,35 +181,31 @@ def get_games(
                 header=header,
                 verbose=verbose,
                 number_of_games=number_of_games,
-            ).decode("utf-8")
+            ).decode()
         )
-        games.extend(list_of_games_per_puuid)
-        time_ind.extend([i for i in range(len(list_of_games_per_puuid))])
-        games_of_a_player[puuid] = list_of_games_per_puuid[:-historical_memory]
-        for game in list_of_games_per_puuid[:-historical_memory]:
-            if players_of_a_game[game]:
-                players_of_a_game.extend(puuid)
+        potential_t0.update(list_of_games_per_puuid[:-historical_memory])
+        for game in list_of_games_per_puuid:
+            if game in players_of_a_game:
+                players_of_a_game[game].append(puuid)
             else:
                 players_of_a_game[game] = [puuid]
 
-    games = pd.Series(games, index=time_ind)
-    return games, games_of_a_player, players_of_a_game
+    return potential_t0, players_of_a_game
 
 
 def get_games_details(
     logger: logging.Logger,
     base_link: str,
     header: dict,
-    verbose: bool,
-    games_list: pd.Series,
-):
-    games_details_list = []
-    for game in games_list:
-        link_for_request = f"{base_link}/{game}"
-        games_details_list.append(
-            bu.make_request(link_for_request, header, verbose, logger)
+    game_name: str,
+    verbose: bool = True,
+) -> MatchDto:
+    link_for_request = f"{base_link}/{game_name}"
+    return MatchDto(
+        **json.loads(
+            bu.make_request(link_for_request, header, verbose, logger).decode()
         )
-    return games_details_list
+    )
 
 
 def load_puuid_for_summoner(
@@ -221,6 +215,19 @@ def load_puuid_for_summoner(
     header: dict,
     verbose: bool = True,
 ) -> object:
+    """given the summoner, it builds the link used to make the request
+    expected answer is of this type:
+    {
+    "id": "3k7TFxNEbtSGmdp9g1DrHpQ7ccrY4y9N1fAx5MjyZ98joxA",
+    "accountId": "t-LEziV-3o3I0pErkGIeQZFpTX8R-aU2H5LXTDjVs-_-Sw",
+    "puuid": "dt3UqhcdZx0jBUyGDRAraXGIO-qgh
+    FH_HqN_FuSox3KOYBFNQlQsVtiD-DBYjiOi8ogSVdEQqA7PiQ",
+    "name": "Agurin",
+    "profileIconId": 4353,
+    "revisionDate": 1674032147141,
+    "summonerLevel": 810
+    }"""
+
     link_for_request = f"{base_link}/{summoner}"
 
     return bu.make_request(link_for_request, header, verbose, logger)
@@ -253,8 +260,49 @@ def retrieve_last_n_games(
     games_to_skip: int = 0,
     number_of_games: int = 100,
 ):
-    link_for_request = (
-        f"{base_link}/{puuid}/ids?type={game_type}&start={games_to_skip}"
-        f"&count={number_of_games}"
-    )
+    if game_type == "":
+        link_for_request = (
+            f"{base_link}/{puuid}/ids?start={games_to_skip}" f"&count={number_of_games}"
+        )
+    else:
+        link_for_request = (
+            f"{base_link}/{puuid}/ids?type={game_type}&start={games_to_skip}"
+            f"&count={number_of_games}"
+        )
+    return bu.make_request(link_for_request, header, verbose, logger)
+
+
+def retrieve_player_encrypted_id_from_puuid(
+    logger: logging.Logger,
+    base_link: str,
+    puuid: str,
+    header: dict,
+    verbose: bool = True,
+):
+
+    link_for_request = f"{base_link}/{puuid}"
+    return bu.make_request(link_for_request, header, verbose, logger)
+
+
+def retrieve_player_details_from_encrypted_id(
+    logger: logging.Logger,
+    base_link: str,
+    encrypted_id: str,
+    header: dict,
+    verbose: bool = True,
+):
+
+    link_for_request = f"{base_link}/{encrypted_id}"
+    return bu.make_request(link_for_request, header, verbose, logger)
+
+
+def get_game_exp(
+    logger: logging.Logger,
+    base_link: str,
+    header: dict,
+    player: str,
+    champion: str,
+    verbose: bool = True,
+):
+    link_for_request = f"{base_link}/by-summoner/{player}/by-champion/{champion}"
     return bu.make_request(link_for_request, header, verbose, logger)

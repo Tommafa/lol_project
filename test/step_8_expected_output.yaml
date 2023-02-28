@@ -1,0 +1,15 @@
+- puuid: RjaNudRvOqsKSqky_IAYZ8lTAjWK-WCRo3tDLYqEFEjD_dcTZy5g
+  summonerId: first_summoner_Id
+  championId: 35
+  win: 0.67
+  championLevel: 12
+- puuid: Zs81hVyZJEXz9PHrH_DzolI8U-RjaNudRvOqsKSqky_IAYZ8lTAjWK-WCRo3tDLYqEFEjD_dcTZy5g
+  summonerId: second_summoner_Id
+  championId: 34
+  win: 0.60
+  championLevel: 125
+- puuid: Zs81hVyZJEXz9PHrH_DzolI8U-RjaNudRvOqsKSqky_IAYZ8lTAjWK-WCRo3tDLYqEFEjD_dcTZy5g
+  summonerId: second_summoner_Id
+  championId: 35
+  win: 1.00
+  championLevel: 1

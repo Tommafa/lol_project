@@ -27,6 +27,26 @@ class LeagueEntryDTO(BaseModel):
         **{"target": 0, "wins": 0, "losses": 0, "progress": "NNNNN"}
     )
 
+    def full_dict(self, puuid):
+        d = {
+            "leagueId": self.leagueId,
+            "summonerId": self.summonerId,
+            "summonerName": self.summonerName,
+            "queueType": self.queueType,
+            "tier": self.tier,
+            "rank": self.rank,
+            "leaguePoints": self.leaguePoints,
+            "wins": self.wins,
+            "losses": self.losses,
+            "hotStreak": self.hotStreak,
+            "veteran": self.veteran,
+            "freshBlood": self.freshBlood,
+            "inactive": self.inactive,
+            "miniSeries": str(self.miniSeries.dict()),
+            "puuid": puuid,
+        }
+        return d
+
 
 class MetadataDto(BaseModel):
     dataVersion: str
@@ -215,4 +235,54 @@ class MatchDto(BaseModel):
     info: InfoDto
 
     def players_list(self):
-        return self.metadata.partecipants
+        return self.metadata.participants
+
+    def get_game_dict(self):
+        match_data = {
+            "gameCreation": self.info.gameCreation,
+            "gameDuration": self.info.gameDuration,
+            "matchId": self.metadata.matchId,
+            "gameMode": self.info.gameMode,
+            "queueId": self.info.queueId,
+            "gameEndedInEarlySurrender": self.info.participants[
+                0
+            ].gameEndedInEarlySurrender,
+            "gameEndedInSurrender": self.info.participants[0].gameEndedInSurrender,
+        }
+        for team in self.info.teams:
+            if team.teamId == 100:
+                team100_win = team.win
+            if team.teamId == 200:
+                team200_win = team.win
+        match_data["team100Win"] = team100_win
+        match_data["team200Win"] = team200_win
+        return match_data
+
+    def get_game_summoner_dict(self):
+        game_details_players = []
+        for i, partecipant in enumerate(self.players_list()):
+            participant_stats = {
+                "matchId": self.metadata.matchId,
+                "puuid": self.info.participants[i].puuid,
+                "championLevel": self.info.participants[i].champLevel,
+                "kills": self.info.participants[i].kills,
+                "assists": self.info.participants[i].assists,
+                "deaths": self.info.participants[i].deaths,
+                "individualPosition": self.info.participants[i].individualPosition,
+                "teamPosition": self.info.participants[i].role,
+                "killingSprees": self.info.participants[i].killingSprees,
+                "lane": self.info.participants[i].lane,
+                "longestTimeSpentLiving": self.info.participants[
+                    i
+                ].longestTimeSpentLiving,
+                "objectivesStolen": self.info.participants[i].objectivesStolen,
+                "role": self.info.participants[i].role,
+                "summoner1Id": self.info.participants[i].summoner1Id,
+                "summoner2Id": self.info.participants[i].summoner2Id,
+                "visionScore": self.info.participants[i].visionScore,
+                "totalTimeSpentDead": self.info.participants[i].totalTimeSpentDead,
+                "championId": self.info.participants[i].championId,
+                "win": self.info.participants[i].win,
+            }
+            game_details_players.append(participant_stats)
+        return game_details_players

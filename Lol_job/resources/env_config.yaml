@@ -1,4 +1,4 @@
-config_path: resources/other_config/dev_config.yaml
+config_path: /resources/other_config/dev_config.yaml
 
 header:
     User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/106.0.0.0 Safari/537.36
@@ -12,3 +12,5 @@ db_settings:
   server: tcp:lol-db-server.database.windows.net,1433
   summoners_table_name: summoners
 
+number_of_players_per_page: 205
+historical_memory: 5

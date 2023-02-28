@@ -1,0 +1,32 @@
+first_summoner_Id:
+  lvl_35:
+    championId: 35
+    championLevel: 12
+    championPoints: 8734
+    lastPlayTime: 1411453669000
+    championPointsSinceLastLevel: 8734
+    championPointsUntilNextLevel: 926
+    chestGranted: false
+    tokensEarned: 0
+    summonerId: first_summoner_Id
+second_summoner_Id:
+  lvl_35:
+    championId: 35
+    championLevel: 1
+    championPoints: 874
+    lastPlayTime: 1461453669000
+    championPointsSinceLastLevel: 874
+    championPointsUntilNextLevel: 926
+    chestGranted: false
+    tokensEarned: 0
+    summonerId: second_summoner_Id
+  lvl_34:
+    championId: 34
+    championLevel: 125
+    championPoints: 874
+    lastPlayTime: 1591453669000
+    championPointsSinceLastLevel: 874
+    championPointsUntilNextLevel: 99926
+    chestGranted: true
+    tokensEarned: 0
+    summonerId: second_summoner_Id

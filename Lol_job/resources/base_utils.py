@@ -3,7 +3,7 @@ import datatable as dt
 import yaml
 import logging
 import requests
-from time import time
+import time
 from sqlalchemy import text
 
 
@@ -47,11 +47,9 @@ def make_request(
 
                 logger.info(msg)
             if status_code == 200:
-                print("done")
                 problems_at_previous_iteration = False
                 return response.content
             else:
-                print("else")
 
                 if verbose:
                     logger.info(response.content)
@@ -64,17 +62,6 @@ def make_request(
         except Exception as e:
             iteration += 1
             logger.error("Unable to get url {} due to {}.".format(link_for_request, e))
-
-
-def func_a(
-    req,
-    header,
-    max_iter: int = 5,
-):
-    i = 5
-    for j in range(i):
-        r = requests.get(req, header)
-        return r
 
 
 def setup_db(
@@ -200,7 +187,9 @@ If IndexProperty(Object_Id({schema}.{summoner_table}),
             summoner1Id tinyint,
             summoner2Id tinyint,
             visionScore int,
-            totalTimeSpentDead int
+            totalTimeSpentDead int,
+            championId int,
+            win bit
         );
         If IndexProperty(Object_Id({schema}.{game_summoner_table}),
 {game_summoner_clustered_index}, 'IndexID') Is Null
